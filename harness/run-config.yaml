@@ -25,6 +25,9 @@ x:
 x_mcp:
   enabled: true
   bridge: codex_tool_import
+  # X MCP authentication belongs to your MCP server / agent config.
+  # Suggested env vars for that layer: X_MCP_CLIENT_ID and X_MCP_CLIENT_SECRET.
+  # This harness imports MCP results; it does not store or read MCP secrets.
 x_api:
   enabled: true
   api_key_env: AI_RADAR_X_API_KEY

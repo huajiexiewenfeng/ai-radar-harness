@@ -252,7 +252,27 @@ x_mcp -> x_api -> browser_x
 
 ### x_mcp
 
-Agent-side MCP calls can import payloads into local evidence.
+Agent-side MCP calls can import payloads into local evidence. X MCP credentials are configured in the MCP server or agent connector, not in `harness/run-config.yaml`.
+
+Recommended split:
+
+```text
+Codex / Claude / Cursor MCP config
+  -> reads X_MCP_CLIENT_ID and X_MCP_CLIENT_SECRET
+  -> calls the X MCP server
+  -> exports the tool result as JSON
+ai-radar-harness
+  -> imports that JSON into evidence/YYYY-MM-DD/<source>.json
+```
+
+Use `.env.example` as the local naming convention:
+
+```bash
+X_MCP_CLIENT_ID="..."
+X_MCP_CLIENT_SECRET="..."
+```
+
+Do not commit real MCP credentials. Keep them in your local shell, secret manager, or agent-specific MCP configuration.
 
 Use:
 
@@ -267,7 +287,7 @@ The payload should be compatible with X API v2 `get_users_posts`.
 
 ### x_api
 
-Uses an X API bearer token from the environment:
+Direct X API fallback uses an X API bearer token from the environment:
 
 ```bash
 export X_API_BEARER_TOKEN="..."
@@ -278,6 +298,8 @@ PowerShell:
 ```powershell
 $env:X_API_BEARER_TOKEN = "..."
 ```
+
+`client_id` / `client_secret` are not used by this direct fallback path unless you build your own OAuth token minting wrapper. The current core CLI expects a ready-to-use bearer token.
 
 ### browser_x
 

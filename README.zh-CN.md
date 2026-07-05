@@ -260,7 +260,27 @@ x_mcp -> x_api -> browser_x
 
 ### x_mcp
 
-agent 侧调用 X MCP 后，可以把 payload 导入本地 evidence。
+agent 侧调用 X MCP 后，可以把 payload 导入本地 evidence。X MCP 的 `client_id` / `sk` 配置在 MCP server 或 agent connector 层，不写进 `harness/run-config.yaml`。
+
+推荐分层：
+
+```text
+Codex / Claude / Cursor 的 MCP 配置
+  -> 读取 X_MCP_CLIENT_ID 和 X_MCP_CLIENT_SECRET
+  -> 调用 X MCP server
+  -> 导出 tool result JSON
+ai-radar-harness
+  -> 把 JSON 导入 evidence/YYYY-MM-DD/<source>.json
+```
+
+`.env.example` 里给了本地环境变量命名约定：
+
+```bash
+X_MCP_CLIENT_ID="..."
+X_MCP_CLIENT_SECRET="..."
+```
+
+不要提交真实 MCP 密钥。真实值应该放在本地 shell、secret manager，或者 Codex / Claude / Cursor 这类 agent 自己的 MCP 配置里。
 
 命令：
 
@@ -275,7 +295,7 @@ payload 应兼容 X API v2 `get_users_posts` 结构。
 
 ### x_api
 
-从环境变量读取 X API Bearer Token：
+直连 X API fallback 从环境变量读取 X API Bearer Token：
 
 ```bash
 export X_API_BEARER_TOKEN="..."
@@ -286,6 +306,8 @@ PowerShell：
 ```powershell
 $env:X_API_BEARER_TOKEN = "..."
 ```
+
+这条直连 fallback 路线当前不读取 `client_id` / `client_secret`。除非后续加 OAuth 换 token 的 wrapper，否则 core CLI 需要的是已经可用的 Bearer Token。
 
 ### browser_x
 

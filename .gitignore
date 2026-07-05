@@ -18,3 +18,4 @@ harness/state.json
 harness/annotations.json
 .env
 .env.*
+!.env.example
