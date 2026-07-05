@@ -1,0 +1,534 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AI Radar Dashboard</title>
+    <style>
+      :root {
+        --bg: #f6f7f6;
+        --surface: #ffffff;
+        --line: #d9ded9;
+        --text: #171a1f;
+        --muted: #626b73;
+        --green: #176b3a;
+        --green-bg: #eef8f1;
+        --amber: #9a5b00;
+        --blue: #0b57d0;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: var(--bg);
+        color: var(--text);
+      }
+      main { max-width: 1360px; margin: 0 auto; padding: 20px 24px 32px; }
+      header {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        align-items: baseline;
+        border-bottom: 1px solid var(--line);
+        padding-bottom: 14px;
+      }
+      h1 { font-size: 26px; margin: 0; letter-spacing: 0; }
+      h2 { font-size: 17px; margin: 22px 0 10px; letter-spacing: 0; }
+      h3 { font-size: 15px; margin: 0 0 8px; letter-spacing: 0; }
+      button, input, select {
+        font: inherit;
+      }
+      .muted { color: var(--muted); }
+      .summary-strip {
+        display: grid;
+        grid-template-columns: repeat(6, minmax(120px, 1fr));
+        gap: 10px;
+        margin-top: 14px;
+      }
+      .metric, .panel, .list-row, .detail-panel {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+      }
+      .metric { padding: 11px 12px; min-height: 64px; }
+      .metric strong { display: block; font-size: 13px; color: var(--muted); font-weight: 600; }
+      .metric span { display: block; font-size: 22px; margin-top: 3px; }
+      .gate-bar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px;
+        margin: 12px 0 16px;
+        padding: 10px 12px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fbfcfb;
+      }
+      .gate-status {
+        color: var(--amber);
+        font-weight: 700;
+      }
+      .decision-workbench {
+        display: grid;
+        grid-template-columns: 240px minmax(420px, 1fr) 380px;
+        gap: 14px;
+        align-items: start;
+      }
+      .filter-sidebar, .list-panel, .detail-panel { min-height: 420px; }
+      .panel { padding: 14px; }
+      .filter-group { border-top: 1px solid var(--line); padding-top: 12px; margin-top: 12px; }
+      .filter-group:first-child { border-top: 0; padding-top: 0; margin-top: 0; }
+      .filter-label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 7px; color: var(--muted); }
+      .filter-stack { display: grid; gap: 7px; }
+      .filter-btn {
+        width: 100%;
+        text-align: left;
+        border: 1px solid var(--line);
+        background: #fff;
+        border-radius: 6px;
+        padding: 8px 9px;
+        cursor: pointer;
+      }
+      .filter-btn.active {
+        border-color: var(--green);
+        background: var(--green-bg);
+        color: var(--green);
+        font-weight: 700;
+      }
+      .search-box {
+        width: 100%;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 8px 9px;
+      }
+      .list-toolbar {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+      .list-panel { min-width: 0; }
+      .list-scroll {
+        display: grid;
+        gap: 8px;
+        max-height: calc(100vh - 270px);
+        overflow: auto;
+        padding-right: 3px;
+      }
+      .list-row {
+        padding: 11px 12px;
+        cursor: pointer;
+      }
+      .list-row.active {
+        border-color: var(--green);
+        background: var(--green-bg);
+      }
+      .row-title {
+        font-weight: 750;
+        line-height: 1.35;
+        margin-bottom: 7px;
+      }
+      .row-meta, .row-summary {
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.45;
+      }
+      .row-summary {
+        margin-top: 7px;
+        color: #344049;
+      }
+      .tag-line {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 7px;
+      }
+      .tag {
+        display: inline-flex;
+        align-items: center;
+        min-height: 22px;
+        padding: 2px 7px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        font-size: 12px;
+        color: #334155;
+        background: #fff;
+      }
+      .tag.publish { border-color: #87b99b; color: var(--green); background: #f5fbf7; }
+      .tag.wiki_only { border-color: #9ebcf0; color: var(--blue); background: #f5f8ff; }
+      .tag.ignore { color: #555; }
+      .tag.pending { border-color: #d6a85d; color: var(--amber); background: #fff8eb; }
+      .detail-panel {
+        position: sticky;
+        top: 14px;
+        padding: 16px;
+        max-height: calc(100vh - 40px);
+        overflow: auto;
+      }
+      .detail-title { font-size: 18px; line-height: 1.35; margin-bottom: 8px; }
+      .detail-section { border-top: 1px solid var(--line); padding-top: 12px; margin-top: 12px; }
+      .detail-section p { line-height: 1.6; margin: 6px 0 0; }
+      .decision-code {
+        display: block;
+        white-space: pre-wrap;
+        word-break: break-word;
+        background: #f3f5f3;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 10px;
+        font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+        font-size: 12px;
+        line-height: 1.5;
+      }
+      a { color: var(--blue); }
+      .secondary-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 10px;
+      }
+      @media (max-width: 1100px) {
+        .decision-workbench { grid-template-columns: 220px 1fr; }
+        .detail-panel { grid-column: 1 / -1; position: static; max-height: none; }
+      }
+      @media (max-width: 760px) {
+        main { padding: 16px; }
+        header { display: block; }
+        .summary-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .decision-workbench { grid-template-columns: 1fr; }
+        .list-scroll { max-height: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>AI Radar Dashboard</h1>
+        <div id="date" class="muted"></div>
+      </header>
+
+      <section>
+        <h2>今日决策总览</h2>
+        <div id="decision-summary" class="summary-strip"></div>
+        <div id="human-gate" class="gate-bar"></div>
+      </section>
+
+      <section class="decision-workbench">
+        <aside class="panel filter-sidebar">
+          <h3>筛选</h3>
+          <div class="filter-group">
+            <label class="filter-label" for="search">搜索</label>
+            <input id="search" class="search-box" placeholder="标题、摘要、来源" />
+          </div>
+          <div class="filter-group">
+            <span class="filter-label">决策状态</span>
+            <div id="decision-filter" class="filter-stack"></div>
+          </div>
+          <div class="filter-group">
+            <span class="filter-label">建议类型</span>
+            <div id="suggestion-filter" class="filter-stack"></div>
+          </div>
+          <div class="filter-group">
+            <label class="filter-label" for="source-filter">来源</label>
+            <select id="source-filter" class="search-box"></select>
+          </div>
+          <div class="filter-group">
+            <label class="filter-label" for="type-filter">类型</label>
+            <select id="type-filter" class="search-box"></select>
+          </div>
+          <div class="filter-group">
+            <span class="filter-label">时间</span>
+            <div id="time-filter" class="filter-stack"></div>
+          </div>
+        </aside>
+
+        <section class="list-panel">
+          <div class="list-toolbar">
+            <h2 style="margin:0;">内容列表</h2>
+            <div id="visible-count" class="muted"></div>
+          </div>
+          <div id="decision-list" class="list-scroll"></div>
+        </section>
+
+        <aside id="detail-panel" class="detail-panel"></aside>
+      </section>
+
+      <section>
+        <h2>运行状态</h2>
+        <div id="run" class="secondary-grid"></div>
+      </section>
+      <section>
+        <h2>Workflow 进度</h2>
+        <div id="workflow" class="secondary-grid"></div>
+      </section>
+      <section>
+        <h2>失败与风险</h2>
+        <div id="failures" class="panel"></div>
+      </section>
+      <section>
+        <h2>近 7 天运行概览</h2>
+        <div id="recent" class="secondary-grid"></div>
+      </section>
+    </main>
+
+    <script src="./dashboard-data.js"></script>
+    <script>
+      const data = window.aiRadarData || { date: "未运行", run: {}, items: [], recent_runs: [] };
+      const esc = value => String(value ?? "").replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char]));
+      const humanSelection = data.human_selection || { items: [], selection_path: "" };
+      const selectionItems = humanSelection.items || [];
+      const decisionSummary = data.decision_summary || { total: 0, suggested: {}, decisions: {}, by_source: {}, unknown_date: 0 };
+      const filters = {
+        decision: "pending",
+        suggested: "publish",
+        source: "all",
+        type: "all",
+        time: "all",
+        search: ""
+      };
+      let selectedItemId = selectionItems[0]?.item_id || "";
+
+      document.getElementById("date").textContent = data.date;
+
+      function metric(label, value) {
+        return `<div class="metric"><strong>${esc(label)}</strong><span>${esc(value)}</span></div>`;
+      }
+
+      function renderSummary() {
+        document.getElementById("decision-summary").innerHTML = [
+          metric("全部内容", decisionSummary.total || 0),
+          metric("建议发文", (decisionSummary.suggested || {}).publish || 0),
+          metric("建议沉淀", (decisionSummary.suggested || {}).wiki_only || 0),
+          metric("已确认", ((decisionSummary.decisions || {}).publish || 0) + ((decisionSummary.decisions || {}).wiki_only || 0) + ((decisionSummary.decisions || {}).ignore || 0)),
+          metric("待确认", (decisionSummary.decisions || {}).pending || 0),
+          metric("日期未知", decisionSummary.unknown_date || 0)
+        ].join("");
+      }
+
+      function renderGate() {
+        const workflow = data.workflow || { status: "not_started", pending_decisions: 0 };
+        document.getElementById("human-gate").innerHTML = [
+          `<strong>Human Gate</strong>`,
+          `<span class="gate-status">${esc(workflow.status || "unknown")}</span>`,
+          `<span>待确认：${esc(workflow.pending_decisions || 0)}</span>`,
+          `<span class="muted">selection：${esc(humanSelection.selection_path || "")}</span>`
+        ].join("");
+      }
+
+      function uniqueValues(key) {
+        return [...new Set(selectionItems.map(item => item[key]).filter(Boolean).map(String))].sort();
+      }
+
+      function renderButtonGroup(id, options, key) {
+        document.getElementById(id).innerHTML = options.map(([value, label]) => (
+          `<button class="filter-btn ${filters[key] === value ? "active" : ""}" data-key="${key}" data-value="${value}">${esc(label)}</button>`
+        )).join("");
+        document.querySelectorAll(`#${id} .filter-btn`).forEach(button => {
+          button.addEventListener("click", () => {
+            filters[button.dataset.key] = button.dataset.value;
+            renderFilters();
+            renderDecisionList();
+          });
+        });
+      }
+
+      function renderSelect(id, values, key, labelAll) {
+        const select = document.getElementById(id);
+        select.innerHTML = [`<option value="all">${esc(labelAll)}</option>`]
+          .concat(values.map(value => `<option value="${esc(value)}">${esc(value)}</option>`))
+          .join("");
+        select.value = filters[key];
+        select.onchange = () => {
+          filters[key] = select.value;
+          renderDecisionList();
+        };
+      }
+
+      function renderFilters() {
+        renderButtonGroup("decision-filter", [
+          ["all", "全部"],
+          ["pending", "待确认"],
+          ["publish", "已选发文"],
+          ["wiki_only", "已选沉淀"],
+          ["ignore", "已忽略"]
+        ], "decision");
+        renderButtonGroup("suggestion-filter", [
+          ["all", "全部建议"],
+          ["publish", "建议发文"],
+          ["wiki_only", "建议沉淀"],
+          ["ignore", "建议忽略"]
+        ], "suggested");
+        renderButtonGroup("time-filter", [
+          ["all", "全部时间"],
+          ["today", "今天"],
+          ["7d", "近 7 天"],
+          ["unknown", "日期未知"]
+        ], "time");
+        renderSelect("source-filter", uniqueValues("source_id"), "source", "全部来源");
+        renderSelect("type-filter", uniqueValues("content_type"), "type", "全部类型");
+      }
+
+      function parseDate(value) {
+        if (!value) return null;
+        const parsed = new Date(`${value}T00:00:00+08:00`);
+        return Number.isNaN(parsed.getTime()) ? null : parsed;
+      }
+
+      function matchesTime(item) {
+        if (filters.time === "all") return true;
+        if (filters.time === "unknown") return !item.content_date;
+        if (filters.time === "today") return item.content_date === data.date;
+        if (filters.time === "7d") {
+          const target = parseDate(data.date);
+          const itemDate = parseDate(item.content_date);
+          if (!target || !itemDate) return false;
+          const delta = (target - itemDate) / (24 * 60 * 60 * 1000);
+          return delta >= 0 && delta <= 6;
+        }
+        return true;
+      }
+
+      function matchesFilters(item) {
+        const decision = item.decision || "pending";
+        const suggested = item.suggested_decision || "publish";
+        const text = `${item.title || ""} ${item.summary || ""} ${item.reason || ""} ${item.source_id || ""}`.toLowerCase();
+        if (filters.decision !== "all" && decision !== filters.decision) return false;
+        if (filters.suggested !== "all" && suggested !== filters.suggested) return false;
+        if (filters.source !== "all" && item.source_id !== filters.source) return false;
+        if (filters.type !== "all" && item.content_type !== filters.type) return false;
+        if (!matchesTime(item)) return false;
+        if (filters.search && !text.includes(filters.search.toLowerCase())) return false;
+        return true;
+      }
+
+      function itemSummary(item) {
+        return item.summary || item.reason || "暂无一句话描述。";
+      }
+
+      function renderDecisionList() {
+        const visible = selectionItems.filter(matchesFilters);
+        if (!visible.some(item => item.item_id === selectedItemId)) {
+          selectedItemId = visible[0]?.item_id || "";
+        }
+        document.getElementById("visible-count").textContent = `${visible.length} / ${selectionItems.length}`;
+        document.getElementById("decision-list").innerHTML = visible.length
+          ? visible.map(item => {
+              const decision = item.decision || "pending";
+              const suggested = item.suggested_decision || "publish";
+              return `<article class="list-row ${item.item_id === selectedItemId ? "active" : ""}" data-id="${esc(item.item_id)}">
+                <div class="row-title">${esc(item.title)}</div>
+                <div class="row-meta">${esc(item.source_id || "unknown")} · ${esc(item.content_type || "unknown")} · ${esc(item.content_date || "日期未知")}</div>
+                <div class="row-summary">${esc(itemSummary(item))}</div>
+                <div class="tag-line">
+                  <span class="tag ${esc(suggested)}">建议 ${esc(suggested)}</span>
+                  <span class="tag ${esc(decision)}">当前 ${esc(decision)}</span>
+                </div>
+              </article>`;
+            }).join("")
+          : `<div class="panel">当前筛选下没有内容。</div>`;
+        document.querySelectorAll(".list-row").forEach(row => {
+          row.addEventListener("click", () => {
+            selectedItemId = row.dataset.id;
+            renderDecisionList();
+            renderDetail();
+          });
+        });
+        renderDetail();
+      }
+
+      function renderDetail() {
+        const item = selectionItems.find(entry => entry.item_id === selectedItemId);
+        const panel = document.getElementById("detail-panel");
+        if (!item) {
+          panel.innerHTML = `<h2 style="margin-top:0;">详情</h2><p class="muted">从左侧列表选择一条内容。</p>`;
+          return;
+        }
+        const decision = item.decision || "pending";
+        const suggested = item.suggested_decision || "publish";
+        const patch = JSON.stringify({ item_id: item.item_id, decision: suggested, note: item.note || "" }, null, 2);
+        panel.innerHTML = `
+          <h2 style="margin-top:0;">详情</h2>
+          <div class="detail-title">${esc(item.title)}</div>
+          <div class="tag-line">
+            <span class="tag ${esc(suggested)}">建议 ${esc(suggested)}</span>
+            <span class="tag ${esc(decision)}">当前 ${esc(decision)}</span>
+          </div>
+          <div class="detail-section">
+            <h3>来源</h3>
+            <p>${esc(item.source_id || "unknown")} · ${esc(item.content_type || "unknown")} · ${esc(item.content_date || "日期未知")}</p>
+            <p><a href="${esc(item.url || "#")}">${esc(item.url || "")}</a></p>
+          </div>
+          <div class="detail-section">
+            <h3>一句话描述</h3>
+            <p>${esc(itemSummary(item))}</p>
+          </div>
+          <div class="detail-section">
+            <h3>为什么重要</h3>
+            <p>${esc(item.why_it_matters || item.reason || "")}</p>
+          </div>
+          <div class="detail-section">
+            <h3>决策片段</h3>
+            <code class="decision-code">${esc(patch)}</code>
+          </div>
+          <div class="detail-section">
+            <h3>文件</h3>
+            <p class="muted">${esc(humanSelection.selection_path || "")}</p>
+          </div>
+        `;
+      }
+
+      document.getElementById("search").addEventListener("input", event => {
+        filters.search = event.target.value;
+        renderDecisionList();
+      });
+
+      function renderRunStatus() {
+        document.getElementById("run").innerHTML = [
+          ["状态", data.run.status || "unknown"],
+          ["来源状态", data.run.source_status || "unknown"],
+          ["LLM 状态", data.run.llm_status || "unknown"],
+          ["X 状态", data.run.x_status || "not_configured"],
+          ["日报精选", data.items.length],
+          ["失败来源", (data.run.failed_sources || []).length]
+        ].map(([k, v]) => `<div class="panel"><strong>${esc(k)}</strong><br>${esc(v)}</div>`).join("");
+      }
+
+      function renderWorkflow() {
+        const workflow = data.workflow || { status: "not_started", steps: {} };
+        const labels = { review: "自动建议", selection: "人工确认", articles: "文章生成", memory: "知识沉淀", result: "流程结果" };
+        document.getElementById("workflow").innerHTML = Object.entries(labels).map(([key, label]) => {
+          const step = workflow.steps[key] || { status: "missing" };
+          const detail = key === "selection"
+            ? `待确认 ${step.pending || 0} / 已确认 ${step.decided || 0}`
+            : key === "memory"
+              ? `候选 ${step.count || 0}`
+              : step.path || "";
+          return `<div class="panel"><strong>${esc(label)}</strong><br>${esc(step.status)}<br><span class="muted">${esc(detail)}</span></div>`;
+        }).join("");
+      }
+
+      function renderFailures() {
+        const sourceErrors = data.run.source_errors || {};
+        const failedSources = data.run.failed_sources || [];
+        document.getElementById("failures").innerHTML = failedSources.length
+          ? failedSources.map(source => `<div><strong>${esc(source)}</strong><br><span class="muted">${esc(sourceErrors[source] || "no detail")}</span></div>`).join("")
+          : "暂无失败来源";
+      }
+
+      function renderRecent() {
+        document.getElementById("recent").innerHTML = (data.recent_runs || [])
+          .map(run => `<div class="panel"><strong>${esc(run.date)}</strong><br>${esc(run.status)} / ${esc(run.item_count)} items</div>`)
+          .join("");
+      }
+
+      renderSummary();
+      renderGate();
+      renderFilters();
+      renderDecisionList();
+      renderRunStatus();
+      renderWorkflow();
+      renderFailures();
+      renderRecent();
+    </script>
+  </body>
+</html>

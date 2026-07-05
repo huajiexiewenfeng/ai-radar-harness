@@ -1,0 +1,261 @@
+sources:
+  - id: anthropic_blog
+    type: company_blog
+    enabled: true
+    fetch_method: html
+    url: https://www.anthropic.com/news
+    max_items_per_fetch: 20
+    priority: high
+    topics: [agent, workflow, safety, model_release]
+    publish_weight: 5
+    learning_weight: 5
+  - id: openai_news
+    type: company_blog
+    enabled: true
+    fetch_method: rss
+    url: https://openai.com/news/
+    feed_url: https://openai.com/news/rss.xml
+    max_items_per_fetch: 20
+    priority: high
+    topics: [model_release, developer_tooling, research_release]
+    publish_weight: 5
+    learning_weight: 5
+  - id: deepmind_blog
+    type: company_blog
+    enabled: true
+    fetch_method: rss
+    url: https://deepmind.google/discover/blog/
+    feed_url: https://deepmind.google/blog/rss.xml
+    max_items_per_fetch: 20
+    priority: high
+    topics: [research_release, model_release]
+    publish_weight: 4
+    learning_weight: 5
+  - id: meta_ai_blog
+    type: company_blog
+    enabled: true
+    fetch_method: html
+    url: https://ai.meta.com/blog/
+    max_items_per_fetch: 20
+    priority: medium
+    topics: [research_release, model_release]
+    publish_weight: 4
+    learning_weight: 4
+  - id: aiatmeta_x
+    type: company_x
+    enabled: true
+    fetch_method: x_mcp
+    url: https://x.com/AIatMeta
+    username: AIatMeta
+    user_id: "1034844617261248512"
+    max_items_per_fetch: 20
+    priority: high
+    topics: [research_release, model_release, ai_trends]
+    publish_weight: 5
+    learning_weight: 5
+  - id: deepseek_x
+    type: company_x
+    enabled: true
+    fetch_method: x_mcp
+    url: https://x.com/deepseek_ai
+    username: deepseek_ai
+    user_id: "1714580962569588736"
+    max_items_per_fetch: 20
+    priority: high
+    topics: [model_release, research_release, developer_tooling, ai_trends]
+    publish_weight: 5
+    learning_weight: 5
+  - id: ms_research_blog
+    type: company_blog
+    enabled: true
+    fetch_method: rss
+    url: https://www.microsoft.com/en-us/research/blog/
+    feed_url: https://www.microsoft.com/en-us/research/feed/
+    max_items_per_fetch: 20
+    priority: medium
+    topics: [research_release, infra_tooling]
+    publish_weight: 3
+    learning_weight: 4
+  - id: langchain_blog
+    type: engineering_blog
+    enabled: true
+    fetch_method: rss
+    url: https://blog.langchain.com/
+    feed_url: https://blog.langchain.com/rss.xml
+    max_items_per_fetch: 20
+    priority: high
+    topics: [agent_workflow, infra_tooling, developer_tooling]
+    publish_weight: 5
+    learning_weight: 5
+  - id: llamaindex_blog
+    type: engineering_blog
+    enabled: true
+    fetch_method: html
+    url: https://www.llamaindex.ai/blog
+    max_items_per_fetch: 20
+    priority: medium
+    topics: [agent_workflow, infra_tooling]
+    publish_weight: 4
+    learning_weight: 4
+  - id: arxiv_cs_ai
+    type: research_feed
+    enabled: true
+    fetch_method: rss
+    url: https://arxiv.org/list/cs.AI/recent
+    feed_url: https://rss.arxiv.org/rss/cs.AI
+    max_items_per_fetch: 20
+    priority: medium
+    topics: [research_release, benchmark_eval]
+    publish_weight: 3
+    learning_weight: 5
+  - id: paperswithcode_trending
+    type: research_feed
+    enabled: true
+    fetch_method: html
+    url: https://paperswithcode.com/
+    max_items_per_fetch: 15
+    priority: low
+    topics: [research_release, benchmark_eval]
+    publish_weight: 3
+    learning_weight: 4
+  - id: karpathy_github
+    type: person_feed
+    enabled: true
+    fetch_method: rss
+    url: https://github.com/karpathy
+    feed_url: https://github.com/karpathy.atom
+    max_items_per_fetch: 10
+    priority: high
+    topics: [learning_reference, agent_workflow, developer_tooling]
+    publish_weight: 4
+    learning_weight: 5
+  - id: andrewng_batch
+    type: person_newsletter
+    enabled: true
+    fetch_method: html
+    url: https://www.deeplearning.ai/the-batch/
+    max_items_per_fetch: 10
+    priority: high
+    topics: [opinion_signal, learning_reference, ai_trends]
+    publish_weight: 4
+    learning_weight: 5
+  - id: karpathy_x
+    type: person_x
+    enabled: true
+    fetch_method: x_mcp
+    url: https://x.com/karpathy
+    username: karpathy
+    user_id: "33836629"
+    max_items_per_fetch: 20
+    priority: high
+    topics: [opinion_signal, agent_workflow, learning_reference]
+    publish_weight: 5
+    learning_weight: 5
+  - id: andrewng_x
+    type: person_x
+    enabled: true
+    fetch_method: x_mcp
+    url: https://x.com/AndrewYNg
+    username: AndrewYNg
+    user_id: "216939636"
+    max_items_per_fetch: 20
+    priority: high
+    topics: [opinion_signal, learning_reference]
+    publish_weight: 4
+    learning_weight: 5
+  - id: yuandong_tian_x
+    type: person_x
+    enabled: true
+    fetch_method: x_mcp
+    url: https://x.com/tydsh
+    username: tydsh
+    user_id: "97939183"
+    max_items_per_fetch: 20
+    priority: high
+    topics: [reasoning, research_release, agent_workflow, opinion_signal]
+    publish_weight: 5
+    learning_weight: 5
+  - id: shunyu_yao_x
+    type: person_x
+    enabled: true
+    fetch_method: x_mcp
+    url: https://x.com/ShunyuYao12
+    username: ShunyuYao12
+    user_id: "1271552707464032256"
+    max_items_per_fetch: 20
+    priority: high
+    topics: [agent_workflow, research_release, learning_reference, opinion_signal]
+    publish_weight: 5
+    learning_weight: 5
+  - id: andrew_ambrosino_x
+    type: person_x
+    enabled: true
+    fetch_method: x_mcp
+    url: https://x.com/ajambrosino
+    username: ajambrosino
+    user_id: "58865213"
+    max_items_per_fetch: 20
+    priority: high
+    topics: [agent_workflow, developer_tooling, opinion_signal]
+    publish_weight: 5
+    learning_weight: 5
+  - id: sama_x
+    type: person_x
+    enabled: true
+    fetch_method: x_mcp
+    url: https://x.com/sama
+    username: sama
+    user_id: "1605"
+    max_items_per_fetch: 20
+    priority: high
+    topics: [ai_trends, model_release, opinion_signal]
+    publish_weight: 5
+    learning_weight: 4
+  - id: dario_amodei_x
+    type: person_x
+    enabled: true
+    fetch_method: x_mcp
+    url: https://x.com/DarioAmodei
+    username: DarioAmodei
+    user_id: "874126509245476864"
+    max_items_per_fetch: 20
+    priority: high
+    topics: [ai_trends, safety, model_release, opinion_signal]
+    publish_weight: 5
+    learning_weight: 4
+  - id: demis_hassabis_x
+    type: person_x
+    enabled: true
+    fetch_method: x_mcp
+    url: https://x.com/demishassabis
+    username: demishassabis
+    user_id: "1482581556"
+    max_items_per_fetch: 20
+    priority: high
+    topics: [ai_trends, research_release, model_release, opinion_signal]
+    publish_weight: 5
+    learning_weight: 5
+  - id: elonmusk_x
+    type: person_x
+    enabled: true
+    fetch_method: x_mcp
+    url: https://x.com/elonmusk
+    username: elonmusk
+    user_id: "44196397"
+    max_items_per_fetch: 30
+    priority: medium
+    topics: [ai_trends, model_release, opinion_signal]
+    publish_weight: 4
+    learning_weight: 3
+  - id: anthropic_x
+    type: company_x
+    enabled: true
+    fetch_method: x_mcp
+    url: https://x.com/AnthropicAI
+    username: AnthropicAI
+    user_id: "1353836358901501952"
+    max_items_per_fetch: 20
+    priority: high
+    topics: [model_release, agent_workflow]
+    publish_weight: 5
+    learning_weight: 4

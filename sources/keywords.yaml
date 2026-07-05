@@ -1,0 +1,21 @@
+include:
+  - ai
+  - agent
+  - workflow
+  - model
+  - llm
+  - reasoning
+  - tool use
+  - multimodal
+  - coding
+  - benchmark
+  - inference
+  - training
+exclude:
+  - hiring
+  - webinar
+  - register
+  - registration
+  - discount
+  - coupon
+  - sponsor

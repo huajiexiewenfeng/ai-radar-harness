@@ -1,0 +1,33 @@
+timezone: Asia/Shanghai
+since_hours: 48
+limit: 30
+dedupe_window_days: 14
+title_window_days: 7
+global_budget:
+  max_sources_per_run: 80
+  max_records_per_run: 500
+  max_llm_items_per_run: 30
+  max_llm_tokens_per_run: 200000
+  max_human_review_items: 30
+  max_today_must_read: 10
+  max_publish_candidates: 20
+  max_learning_candidates: 20
+llm:
+  provider: none
+  model: claude-sonnet-5
+  api_key_env: AI_RADAR_LLM_KEY
+  max_input_chars: 4000
+x:
+  profile_dir: .browser-profile
+  chrome_executable_path: C:/Program Files/Google/Chrome/Application/chrome.exe
+  max_items_per_account: 20
+  stage_timeout_minutes: 5
+x_mcp:
+  enabled: true
+  bridge: codex_tool_import
+x_api:
+  enabled: true
+  api_key_env: AI_RADAR_X_API_KEY
+  api_bearer_token_env: X_API_BEARER_TOKEN
+  monthly_budget_usd: 20
+  on_budget_exceeded: fallback_browser_x
