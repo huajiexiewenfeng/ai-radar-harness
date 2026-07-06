@@ -315,6 +315,27 @@ $env:X_API_BEARER_TOKEN = "..."
 
 ## 其他 Agent 如何接入
 
+推荐从 Skill 入口开始，其次再使用 Shell / File / MCP。
+
+### Skill Agent
+
+面向聊天窗口的最轻入口，可以安装或复制：
+
+```text
+skills/ai-frontier-newsroom
+```
+
+然后在另一个 agent 聊天窗口中触发：
+
+```text
+$ai-frontier-newsroom 扫描今天
+$ai-frontier-newsroom 扫描昨天
+$ai-frontier-newsroom 继续生成文章
+$ai-frontier-newsroom 查看 dashboard
+```
+
+这个 Skill 刻意保持很薄：它只负责调用 CLI，默认停在 Human Gate，并把 dashboard / review 文件告诉你，不把流程藏到另一个复杂服务里。
+
 ### Shell Agent
 
 任何能执行 shell 的 agent 都可以调用：

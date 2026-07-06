@@ -1,0 +1,4 @@
+interface:
+  display_name: "AI Frontier Newsroom"
+  short_description: "Run the AI news-to-learning-to-publishing workflow."
+  default_prompt: "Use $ai-frontier-newsroom to scan today and stop at Human Gate."

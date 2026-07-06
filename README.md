@@ -307,7 +307,26 @@ Uses a local browser profile and Playwright. This is useful as a fallback, but i
 
 ## Agent Integration
 
-Other agents can integrate in three ways.
+Other agents can integrate in four ways.
+
+### Skill Agent
+
+For chat-first use, install or copy:
+
+```text
+skills/ai-frontier-newsroom
+```
+
+Then trigger it from another agent chat:
+
+```text
+$ai-frontier-newsroom scan today
+$ai-frontier-newsroom scan yesterday
+$ai-frontier-newsroom continue after Human Gate
+$ai-frontier-newsroom open dashboard
+```
+
+The skill is intentionally thin. It calls the CLI, stops at Human Gate by default, and reports the dashboard/review artifacts instead of hiding the workflow behind another service.
 
 ### Shell Agent
 
