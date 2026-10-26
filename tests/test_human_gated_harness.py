@@ -15,7 +15,7 @@ def test_run_until_human_stops_after_selection(monkeypatch, tmp_path: Path):
         calls.append("collect")
         return {"status": "complete", "item_count": 1}
 
-    def fake_run_review_stage(root, run_date):
+    def fake_run_review_stage(root, run_date, reset=False):
         calls.append("review")
         review_dir = Path(root) / "review"
         review_dir.mkdir(parents=True)

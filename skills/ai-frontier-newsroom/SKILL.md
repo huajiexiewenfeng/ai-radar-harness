@@ -92,7 +92,7 @@ A bare “继续” is accepted only after the active project has already been r
 
 ```powershell
 & $Python scripts/run_human_gated_workflow.py --date YYYY-MM-DD --stage continue-after-human
-& $Python scripts/run_publish_workflow.py --date YYYY-MM-DD --stage review
+& $Python scripts/pipeline_status.py --from YYYY-MM-DD --to YYYY-MM-DD
 ```
 
 For "生成最终稿" or "finalize article":
@@ -104,6 +104,8 @@ For "生成最终稿" or "finalize article":
 ## Human Gate Rule
 
 Default to stopping at Human Gate. The workflow must not auto-generate final articles immediately after scanning.
+
+重跑 review 默认保留已有决定；只有用户明确要求时才加 `--reset-selection`。
 
 After a scan, report only the useful decision artifacts:
 

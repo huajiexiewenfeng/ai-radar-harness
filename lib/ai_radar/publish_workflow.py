@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+from datetime import datetime, timedelta
 from pathlib import Path
+from shutil import copy2
 from typing import Any
 
 from ai_radar.budget import apply_global_human_budget
@@ -191,7 +193,16 @@ def render_review_markdown(review: dict[str, Any]) -> str:
     return "\n".join(lines).strip() + "\n"
 
 
-def initialize_selection(root: str | Path, run_date: str, review: dict[str, Any]) -> dict[str, Any]:
+def initialize_selection(root: str | Path, run_date: str, review: dict[str, Any], reset: bool = False) -> dict[str, Any]:
+    selection_path = Path(root) / "review" / f"{run_date}-selection.json"
+    previous = load_json_file(selection_path, {}) if selection_path.exists() else {}
+    if reset and selection_path.exists():
+        stamp = datetime.now()
+        backup = selection_path.with_name(f"{run_date}-selection.bak-{stamp:%Y%m%d%H%M%S}.json")
+        while backup.exists():
+            stamp += timedelta(seconds=1)
+            backup = selection_path.with_name(f"{run_date}-selection.bak-{stamp:%Y%m%d%H%M%S}.json")
+        copy2(selection_path, backup)
     selection = {
         "date": run_date,
         "status": "pending_human_review",
@@ -207,11 +218,26 @@ def initialize_selection(root: str | Path, run_date: str, review: dict[str, Any]
             for entry in review.get("items", [])
         ],
     }
-    write_json_file(Path(root) / "review" / f"{run_date}-selection.json", selection)
+    if previous and not reset:
+        old_items = previous.get("items", [])
+        old_by_id = {item["item_id"]: item for item in old_items}
+        current_ids = {item["item_id"] for item in selection["items"]}
+        merged_items = []
+        for item in selection["items"]:
+            old = old_by_id.get(item["item_id"])
+            if old is not None:
+                merged = {**old, "title": item["title"], "suggested_decision": item["suggested_decision"]}
+                merged.pop("stale", None)
+                merged_items.append(merged)
+            else:
+                merged_items.append(item)
+        merged_items.extend({**item, "stale": True} for item in old_items if item["item_id"] not in current_ids)
+        selection = {**selection, **previous, "date": run_date, "items": merged_items}
+    write_json_file(selection_path, selection)
     return selection
 
 
-def run_review_stage(root: str | Path, run_date: str) -> dict[str, Any]:
+def run_review_stage(root: str | Path, run_date: str, reset: bool = False) -> dict[str, Any]:
     root = Path(root)
     items, pool = load_decision_pool(root, run_date)
     config_path = root / "harness" / "run-config.yaml"
@@ -220,7 +246,7 @@ def run_review_stage(root: str | Path, run_date: str) -> dict[str, Any]:
     review["summary"]["decision_pool"] = pool
     write_json_file(root / "review" / f"{run_date}-review.json", review)
     (root / "review" / f"{run_date}-review.md").write_text(render_review_markdown(review), encoding="utf-8")
-    initialize_selection(root, run_date, review)
+    initialize_selection(root, run_date, review, reset=reset)
     return {
         "status": "selection_required",
         "date": run_date,
@@ -252,7 +278,7 @@ def workflow_status(root: str | Path, run_date: str) -> dict[str, Any]:
     memory = load_json_file(memory_path, {})
 
     selection_items = selection.get("items", [])
-    pending_decisions = sum(1 for item in selection_items if item.get("decision") == "pending")
+    pending_decisions = sum(1 for item in selection_items if item.get("decision") == "pending" and not item.get("stale"))
     decided_items = sum(1 for item in selection_items if item.get("decision") in DECISIONS)
     article_done = bool(article_paths) and all(path.exists() and path.stat().st_size > 0 for path in article_paths)
     memory_exists = memory_path.exists()
@@ -296,8 +322,8 @@ def workflow_status(root: str | Path, run_date: str) -> dict[str, Any]:
 def _selection_map(root: Path, run_date: str) -> dict[str, dict[str, Any]]:
     selection = load_json_file(root / "review" / f"{run_date}-selection.json", {})
     entries = selection.get("items", [])
-    pending = [entry for entry in entries if entry.get("decision") == "pending"]
-    invalid = [entry for entry in entries if entry.get("decision") not in DECISIONS and entry.get("decision") != "pending"]
+    pending = [entry for entry in entries if entry.get("decision") == "pending" and not entry.get("stale")]
+    invalid = [entry for entry in entries if not entry.get("stale") and entry.get("decision") not in DECISIONS and entry.get("decision") != "pending"]
     if pending:
         raise ValueError(f"selection has pending decisions: {', '.join(entry.get('item_id', '') for entry in pending)}")
     if invalid:
@@ -456,12 +482,16 @@ def finalize_selection(root: str | Path, run_date: str, items: list[dict[str, An
     selection = _selection_map(root, run_date)
     publish_items = _selected_items(current_items, selection, "publish")
     wiki_items = _selected_items(current_items, selection, "wiki_only")
+    current_ids = {item["id"] for item in current_items}
+    stale_selected = [item_id for item_id, entry in selection.items()
+                      if item_id not in current_ids and entry.get("decision") in {"publish", "wiki_only"}]
     article_paths = write_article_bundle(root, run_date, publish_items) if publish_items else {}
     memory = write_memory_pending(root, run_date, wiki_items, selection)
     result = {
         "date": run_date,
         "status": "complete",
         "published_count": len(publish_items),
+        "stale_selected": stale_selected,
         "memory_pending_count": len(memory["items"]),
         "article_paths": article_paths,
         "memory_pending": str(root / "memory" / "pending" / f"{run_date}.json"),

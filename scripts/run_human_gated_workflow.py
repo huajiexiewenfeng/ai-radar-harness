@@ -20,11 +20,13 @@ def main() -> int:
     parser.add_argument("--limit", type=int, default=30)
     parser.add_argument("--stage", choices=["until-human", "continue-after-human"], default="until-human")
     parser.add_argument("--skip-collect", action="store_true", help="Use existing items.json and only rebuild review/selection.")
+    parser.add_argument("--reset-selection", action="store_true", help="Back up and reset human decisions before the Human Gate.")
     args = parser.parse_args()
 
     try:
         if args.stage == "until-human":
-            result = run_until_human(ROOT, args.date, args.since_hours, args.limit, collect=not args.skip_collect)
+            result = run_until_human(ROOT, args.date, args.since_hours, args.limit,
+                                     collect=not args.skip_collect, reset_selection=args.reset_selection)
         else:
             result = continue_after_human(ROOT, args.date)
     except ValueError as exc:

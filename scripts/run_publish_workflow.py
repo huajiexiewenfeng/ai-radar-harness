@@ -16,10 +16,11 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Run AI Radar review, human selection, article, and memory workflow.")
     parser.add_argument("--date", default=run_date_for())
     parser.add_argument("--stage", choices=["review", "finalize"], default="review")
+    parser.add_argument("--reset-selection", action="store_true", help="Back up and reset human decisions when rebuilding review.")
     args = parser.parse_args()
 
     if args.stage == "review":
-        result = run_review_stage(ROOT, args.date)
+        result = run_review_stage(ROOT, args.date, reset=args.reset_selection)
     else:
         result = finalize_selection(ROOT, args.date)
     print(f"AI Radar publish workflow {result['status']}: {args.stage} {args.date}")

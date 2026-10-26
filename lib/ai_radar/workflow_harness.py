@@ -15,12 +15,13 @@ def run_until_human(
     limit: int,
     *,
     collect: bool = True,
+    reset_selection: bool = False,
 ) -> dict[str, Any]:
     root = Path(root)
     collection = None
     if collect:
         collection = run_live(root, run_date, since_hours, limit, filter_by_content_date=True)
-    review = run_review_stage(root, run_date)
+    review = run_review_stage(root, run_date, reset=reset_selection)
     workflow = workflow_status(root, run_date)
     result = {
         "date": run_date,
