@@ -102,6 +102,23 @@ def test_finalize_reports_missing_selected_ids_even_without_stale_flag(tmp_path:
     assert finalize_selection(tmp_path, DAY)["stale_selected"] == ["absent"]
 
 
+def test_finalize_skips_stale_selected_entries_still_present_in_items(tmp_path: Path):
+    _items(tmp_path, "current", "old_publish", "old_wiki")
+    _write(tmp_path / "review" / f"{DAY}-selection.json", {"items": [
+        {"item_id": "current", "decision": "ignore"},
+        {"item_id": "old_publish", "decision": "publish", "stale": True},
+        {"item_id": "old_wiki", "decision": "wiki_only", "stale": True},
+    ]})
+
+    result = finalize_selection(tmp_path, DAY)
+
+    assert result["published_count"] == 0
+    assert result["memory_pending_count"] == 0
+    assert result["stale_selected"] == []
+    assert result["stale_review_selected"] == ["old_publish", "old_wiki"]
+    assert not (tmp_path / "articles" / DAY).exists()
+
+
 def test_until_human_passes_reset_without_collecting(tmp_path: Path):
     _items(tmp_path, "keep")
     run_review_stage(tmp_path, DAY)

@@ -332,7 +332,9 @@ def _selection_map(root: Path, run_date: str) -> dict[str, dict[str, Any]]:
 
 
 def _selected_items(items: list[dict[str, Any]], selection: dict[str, dict[str, Any]], decision: str) -> list[dict[str, Any]]:
-    return [item for item in items if selection.get(item["id"], {}).get("decision") == decision]
+    return [item for item in items
+            if selection.get(item["id"], {}).get("decision") == decision
+            and not selection.get(item["id"], {}).get("stale")]
 
 
 def _sources_block(items: list[dict[str, Any]]) -> list[str]:
@@ -485,6 +487,9 @@ def finalize_selection(root: str | Path, run_date: str, items: list[dict[str, An
     current_ids = {item["id"] for item in current_items}
     stale_selected = [item_id for item_id, entry in selection.items()
                       if item_id not in current_ids and entry.get("decision") in {"publish", "wiki_only"}]
+    stale_review_selected = [item_id for item_id, entry in selection.items()
+                             if item_id in current_ids and entry.get("stale")
+                             and entry.get("decision") in {"publish", "wiki_only"}]
     article_paths = write_article_bundle(root, run_date, publish_items) if publish_items else {}
     memory = write_memory_pending(root, run_date, wiki_items, selection)
     result = {
@@ -492,6 +497,7 @@ def finalize_selection(root: str | Path, run_date: str, items: list[dict[str, An
         "status": "complete",
         "published_count": len(publish_items),
         "stale_selected": stale_selected,
+        "stale_review_selected": stale_review_selected,
         "memory_pending_count": len(memory["items"]),
         "article_paths": article_paths,
         "memory_pending": str(root / "memory" / "pending" / f"{run_date}.json"),

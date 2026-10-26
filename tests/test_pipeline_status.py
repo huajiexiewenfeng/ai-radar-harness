@@ -141,11 +141,25 @@ def test_missing_empty_and_empty_list_selection_are_distinct(status_module, tmp_
     assert report["summary"]["evidence_dates"] == 0
 
 
-@pytest.mark.parametrize("url", ["http://127.0.0.1:7897/private", "https://10.0.0.1/secret", "http://service.internal/api", "https://user:secret@example.com/a"])
+@pytest.mark.parametrize("url", [
+    "http://127.0.0.1:7897/private", "https://10.0.0.1/secret",
+    "http://service.internal/api", "https://user:secret@example.com/a",
+    "http://127.0.0.1.:7897/private", "https://service.internal./api",
+    "https://SERVICE.LOCAL./secret", "https://10.0.0.1.../private",
+])
 def test_receipts_do_not_expose_private_endpoints(status_module, tmp_path, url):
     _write(tmp_path, "articles/2026-07-04/receipt.json", {"article_url": url, "status": "published", "date": "2026-07-04"})
     report = status_module.build_status(tmp_path, "2026-07-04", "2026-07-04")
     assert report["receipts"][0]["article_url"] == "待验证"
+
+
+def test_public_fqdn_receipt_keeps_url_but_removes_query(status_module, tmp_path):
+    _write(tmp_path, "articles/2026-07-04/receipt.json", {
+        "article_url": "https://example.com./article?token=PRIVATE_QUERY",
+        "status": "published", "date": "2026-07-04",
+    })
+    report = status_module.build_status(tmp_path, "2026-07-04", "2026-07-04")
+    assert report["receipts"][0]["article_url"] == "https://example.com./article"
 
 
 def test_invalid_range_fails_without_writes(status_module, tmp_path, capsys):

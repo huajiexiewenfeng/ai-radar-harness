@@ -115,7 +115,7 @@ def _public_url(value: object) -> str:
         return UNKNOWN
     try:
         url = urlsplit(value)
-        host = url.hostname or ""
+        host = (url.hostname or "").rstrip(".").lower()
         if url.scheme not in {"https", "http"} or url.username or url.password or "." not in host:
             return UNKNOWN
         if host.endswith((".local", ".localhost", ".internal", ".corp", ".lan", ".test", ".invalid")):
